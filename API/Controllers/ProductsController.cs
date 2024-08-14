@@ -1,9 +1,12 @@
+using System.Reflection.Metadata.Ecma335;
+using API.Models;
 using Core.Entities;
 using Core.Interfaces;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace API.Controllers
 {
@@ -13,23 +16,75 @@ namespace API.Controllers
     {
 
 
-        private readonly IProductRepository _productRepo;
+        private readonly IGenericRepository<Product> _productRepo;
 
-        public ProductsController(IProductRepository repository)
+        public ProductsController(IGenericRepository<Product> repository)
         {
            _productRepo=repository;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(string? brand,string? type,string? sort)
+        public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(string? brand,string? type,string? sort,string? search,
+         int pageSize=3,int pageIndex=1)
         {
-         return Ok(await _productRepo.GetProductsAsync(brand,type,sort));
+           IQueryable<Product> list = Enumerable.Empty<Product>().AsQueryable();
+           list=_productRepo.GetAll();
+          
+          //Filtering
+           if(!string.IsNullOrWhiteSpace(type))
+           {
+            string[] new_type=type.Split(',');
+            if(new_type.Length>1)
+            {
+                list=list.Where(a=>new_type.Contains(a.Brand));
+            }
+            else {  list= list.Where(a=>a.Type==type);}
+  
+           }
+                    
+           if(!string.IsNullOrWhiteSpace(brand))
+           {
+            string[]new_brand=brand.Split(',');
+            if(new_brand.Length>1)
+            {
+             list=list.Where(a=>new_brand.Contains(a.Brand));
+            }
+            else { list= list.Where(a=>a.Brand==brand); }
+
+           }
+
+         //Sorting
+         if(!string.IsNullOrWhiteSpace(sort))
+         {
+             //sort
+            list=sort switch
+            {
+                "priceAsc" => list.OrderBy(x =>x.Price),
+                "priceDesc"=>list.OrderByDescending(x=>x.Price),
+                _ => list.OrderBy(x=>x.Name)
+            };
+    
+         }
+         //search
+         if(!string.IsNullOrWhiteSpace(search))
+         list=list.Where(a=>a.Name.ToLower().Contains(search.ToLower()));
+         //Pagination
+           
+         var skipResults=(pageIndex-1)*pageSize;
+
+         list=list.Skip(skipResults).Take(pageSize);
+         var responseList=   await list.ToListAsync();
+         int  count=responseList.Count;
+
+         var responseData=new ResponseData<Product>(pageIndex,pageSize,count,responseList);
+
+         return Ok(responseData) ;
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Product>>GetProduct(int id)
         {
-            var product=await _productRepo.GetProductByIdAsync(id);
+            var product=await _productRepo.GetByIdAsync(id);
 
            if(product==null) return NotFound();
 
@@ -39,9 +94,9 @@ namespace API.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>>CreateProduct(Product model)
         {
-           _productRepo.AddProduct(model);
+           _productRepo.Add(model);
           
-        if( await _productRepo.SaveChangesAsync())
+        if( await _productRepo.SaveAllAsync())
         {
             return CreatedAtAction("GetProduct",new {id=model.Id},model );
         }
@@ -53,11 +108,11 @@ namespace API.Controllers
         [HttpPut("{id:int}")]
         public async Task<ActionResult> UpdateProduct(int id,Product model)
         {
-            if(model.Id!=id ||!_productRepo.ProductExists(id)) return  BadRequest("Can not update this product");
+            if(model.Id!=id ||!_productRepo.Exists(id)) return  BadRequest("Can not update this product");
  
-            _productRepo.UpdateProduct(model);
+            _productRepo.Update(model);
 
-          if(  await _productRepo.SaveChangesAsync())
+          if(  await _productRepo.SaveAllAsync())
           {
             return NoContent();
           }
@@ -71,12 +126,12 @@ namespace API.Controllers
 
         public async Task<ActionResult> DeleteProduct(int id)
         {
-            var product=await _productRepo.GetProductByIdAsync(id);
+            var product=await _productRepo.GetByIdAsync(id);
             if(product==null) return NotFound();
 
-           _productRepo.DeleteProduct(product);
+           _productRepo.Remove(product);
 
-                if(  await _productRepo.SaveChangesAsync())
+                if(  await _productRepo.SaveAllAsync())
           {
             return NoContent();
           }
@@ -87,14 +142,14 @@ namespace API.Controllers
         public async Task<ActionResult<IReadOnlyList<string>>>GetBrands()
         {
 
-          return Ok( await _productRepo.GetBrandAsync());
+          return Ok( );
         }
 
         [HttpGet("types")]
         public async Task<ActionResult<IReadOnlyList<string>>>GetTypes()
         {
 
-          return Ok( await _productRepo.GetTypesAsync());
+          return Ok();
         }
 
     }
