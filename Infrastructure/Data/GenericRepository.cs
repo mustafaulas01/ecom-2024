@@ -42,7 +42,6 @@ public class GenericRepository<T>(StoreContext context) : IGenericRepository<T> 
     }
 
 
-
     public void Remove(T entity)
     {
         context.Set<T>().Remove(entity);

@@ -17,10 +17,12 @@ namespace API.Controllers
 
 
         private readonly IGenericRepository<Product> _productRepo;
+        private readonly IProductRepository _oldProductRepo;
 
-        public ProductsController(IGenericRepository<Product> repository)
+        public ProductsController(IGenericRepository<Product> repository,IProductRepository  productRepository)
         {
            _productRepo=repository;
+           _oldProductRepo=productRepository;
         }
 
         [HttpGet]
@@ -101,7 +103,6 @@ namespace API.Controllers
             return CreatedAtAction("GetProduct",new {id=model.Id},model );
         }
 
-
           return BadRequest("Problem creating product"); 
         }
 
@@ -142,14 +143,14 @@ namespace API.Controllers
         public async Task<ActionResult<IReadOnlyList<string>>>GetBrands()
         {
 
-          return Ok( );
+          return Ok( await _oldProductRepo.GetBrandAsync() );
         }
 
         [HttpGet("types")]
         public async Task<ActionResult<IReadOnlyList<string>>>GetTypes()
         {
 
-          return Ok();
+          return Ok(await _oldProductRepo.GetBrandAsync());
         }
 
     }
