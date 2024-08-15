@@ -24,6 +24,6 @@ public class CreateProductDto
 
     public string Brand { get; set; }  =string.Empty;
 
-    [Range(1,int.MaxValue,ErrorMessage ="Quantity in stock must be greater than 0")]
+    [Range(1,int.MaxValue,ErrorMessage ="Quantity in stock must be at least 0")]
     public int QuantityInStock { get; set; }
 }
