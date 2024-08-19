@@ -1,0 +1,46 @@
+<div class="flex flex-col gap-3">
+  <div class="flex justify-between"  style="margin-right: 15px;" *ngIf="pageIndex">
+    <mat-paginator 
+    class="bg-white"
+    (page)="handlePageEvent($event)"
+    [length]="totalPageCount"
+    [pageSize]="pageSize"
+    [showFirstLastButtons]="true"
+    [pageSizeOptions]="pageSizeOptions"
+    [pageIndex]="pageIndex-1"
+    aria-label="Select page"
+    >
+  
+    </mat-paginator>
+
+    <div class="flex gap-3">
+      <button mat-stroked-button (click)="openFiltersDialog()">
+        <mat-icon>filter_list</mat-icon>
+        Filters
+      </button>
+      <button mat-stroked-button [mat-menu-trigger-for]="sortMenu">
+        <mat-icon>swap_vert</mat-icon>
+        Sort
+      </button>
+    </div>
+
+  </div>
+
+  <div class="row" style="margin: 15px">
+    <div class="grid grid-cols-5 gap-4">
+      @for(product of products; track product.id) {
+      <app-product-item [product]="product"></app-product-item>
+      }
+    </div>
+  </div>
+</div>
+
+
+<mat-menu #sortMenu="matMenu">
+  <mat-selection-list [multiple]="false" (selectionChange)="onSortChange($event)">
+    @for(sort of sortOptions;track $index )
+    {
+    <mat-list-option [value]="sort.value" [selected]="selectedSort===sort.value">{{sort.name}}</mat-list-option>
+    }
+  </mat-selection-list>
+</mat-menu>

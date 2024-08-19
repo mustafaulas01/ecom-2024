@@ -27,7 +27,7 @@ namespace API.Controllers
 
         [HttpGet]
         public async Task<ActionResult<IReadOnlyList<Product>>> GetProducts(string? brand,string? type,string? sort,string? search,
-         int pageSize=3,int pageIndex=1)
+         int pageSize=10,int pageIndex=1)
         {
            IQueryable<Product> list = Enumerable.Empty<Product>().AsQueryable();
            list=_productRepo.GetAll();
@@ -72,11 +72,12 @@ namespace API.Controllers
          list=list.Where(a=>a.Name.ToLower().Contains(search.ToLower()));
          //Pagination
            
+          int  count=list.Count();  
          var skipResults=(pageIndex-1)*pageSize;
 
          list=list.Skip(skipResults).Take(pageSize);
          var responseList=   await list.ToListAsync();
-         int  count=responseList.Count;
+        
 
          var responseData=new ResponseData<Product>(pageIndex,pageSize,count,responseList);
 
@@ -150,7 +151,7 @@ namespace API.Controllers
         public async Task<ActionResult<IReadOnlyList<string>>>GetTypes()
         {
 
-          return Ok(await _oldProductRepo.GetBrandAsync());
+          return Ok(await _oldProductRepo.GetTypesAsync());
         }
 
     }
