@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { ProductResponse } from '../../shared/models/productResponse';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ReturnStatement } from '@angular/compiler';
+import { Product } from '../../shared/models/product';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +15,13 @@ export class ShopService {
   types: string[] = [];
   brands: string[] = [];
 
-  getProducts(brands?: string[], types?: string[],sort?:string,pageSize?:number,pageIndex?:number) {
+
+  getProduct(id:number)
+  {
+   return this.http.get<Product>(this.baseUrl+'products/'+id);
+  }
+
+  getProducts(brands?: string[], types?: string[],sort?:string,search?:string, pageSize?:number,pageIndex?:number) {
     let params = new HttpParams();
     if (brands && brands.length > 0) {
       params = params.append('brand', brands.join(','));
@@ -26,6 +33,8 @@ export class ShopService {
     {
       params=params.append("sort",sort);
     }
+    if(search)
+      params=params.append("search",search);
 
     if(pageSize)
      params=params.append('pageSize',pageSize);

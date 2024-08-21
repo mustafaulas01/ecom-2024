@@ -49,6 +49,8 @@ export class ShopComponent implements OnInit {
   selectedTypes: string[] = [];
   selectedSort: string = 'name';
 
+  search?:string;
+
   sortOptions = [
     { name: 'Alphabetical', value: 'name' },
     { name: 'Price: Low-High', value: 'priceAsc' },
@@ -79,6 +81,7 @@ export class ShopComponent implements OnInit {
         this.selectedBrands,
         this.selectedTypes,
         this.selectedSort,
+        this.search,
         this.pageSize,
         this.pageIndex
       )
@@ -130,5 +133,11 @@ export class ShopComponent implements OnInit {
         }
       },
     });
+  }
+
+  onSearchChange()
+  {
+  this.pageIndex=1;
+  this.getProducts();
   }
 }
