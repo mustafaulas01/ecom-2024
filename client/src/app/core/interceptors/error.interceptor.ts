@@ -10,8 +10,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const snackbar = inject(SnackbarService);
 
   return next(req).pipe(
+    
     catchError((err: HttpErrorResponse) => {
+
       if (err.status === 400) {
+
         if(err.error.errors){
           const modelStateErrors=[];
           for(const key in err.error.errors)
